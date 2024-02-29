@@ -35,11 +35,11 @@ async def login_fuct(request : Request):
 @login.post('/logout')
 async def login_fuct(request : Request):
     json_data = await request.json()
-    for i in ['id','token']:
+    for i in ['user_id']:
         if i not in json_data.keys():
             return {"status":500,"message":f"{i} is missing","data":{}}
         if len(json_data[i]) == 0:
             return {"status":500,"message":f"{i} can not be empty","data":{}}
-    db1.query(Session).filter(Session.user_id == json_data['id'],Session.token == json_data['token']).delete()
+    db1.query(Session).filter(Session.user_id == json_data['user_id']).delete()
     db1.commit()
     return {"success":200,"message":"Logout success","data":{}}
