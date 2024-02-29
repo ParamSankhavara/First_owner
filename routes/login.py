@@ -13,12 +13,16 @@ login = APIRouter()
 @login.post('/login')
 async def login_fuct(request : Request):
     json_data = await request.json()
-    for i in ['mobile_no','password']:
+    for i in ['mobile_no','password','role_id']:
         if i not in json_data.keys():
             return {"status":500,"message":f"{i} is missing","data":{}}
-        if len(json_data[i]) == 0:
-            return {"status":500,"message":f"{i} can not be empty","data":{}}
-    user_data = get_user_data(json_data['mobile_no'],json_data['password'])
+        if type(json_data[i]) == int:
+            if json_data[i] == 0:
+                return {"status":500,"message":f"{i} can not be empty","data":{}}
+        else:
+            if len(json_data[i]) == 0:
+                return {"status":500,"message":f"{i} can not be empty","data":{}}
+    user_data = get_user_data(json_data['mobile_no'],json_data['password'],json_data['role_id'])
     if len(user_data) == 0:
         return {"status":200,"message":"Mobile no or password is wrong","data":{}}
     user_data = user_data[0]

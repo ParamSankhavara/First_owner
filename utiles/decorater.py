@@ -4,8 +4,8 @@ from models.session import Session
 from config.db import db1,engine
 from sqlalchemy import text,and_
 
-def get_user_data(mobile_no,password):
-    data = [i.__dict__ for i in db1.query(User).filter(and_(User.mobile_no == mobile_no,User.password == password))]
+def get_user_data(mobile_no,password,role_id):
+    data = [i.__dict__ for i in db1.query(User).filter(and_(User.mobile_no == mobile_no,User.password == password,User.role_id == role_id))]
     return data
 
 
