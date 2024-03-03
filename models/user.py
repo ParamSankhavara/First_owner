@@ -5,7 +5,7 @@ Base = declarative_base()
 
 class User(Base):
     __tablename__ = 'users'
-    id = Column(Integer, primary_key=True, unique=True)
+    id = Column(Integer, primary_key=True, unique=True,autoincrement=True)
     role_id = Column(Integer)
     username = Column(String(10))
     mobile_no = Column(Integer, unique=True)
