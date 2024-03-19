@@ -9,6 +9,8 @@ from models.security_questions import SecurityQuestion
 from utiles.decorater import get_user_data,set_session,validate_request
 from sqlalchemy import and_
 import datetime
+from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 
 login = APIRouter()
 
@@ -32,7 +34,7 @@ async def login_fuct(request : Request):
     rand_token = uuid4()
     set_session(user_data['id'],rand_token)
     user_data['token'] = rand_token
-    return {"status":200,"message":"Login success","data":user_data}
+    return JSONResponse(content={"status":200,"message":"Login success","data":user_data})
 
 
 @login.post('/logout')
@@ -45,7 +47,7 @@ async def login_fuct(request : Request):
             return {"status":500,"message":f"{i} can not be empty","data":{}}
     db1.query(Session).filter(Session.user_id == json_data['user_id']).delete()
     db1.commit()
-    return {"success":200,"message":"Logout success","data":{}}
+    return JSONResponse(content={"success":200,"message":"Logout success","data":{}})
 
 
 @login.post('/change_password')
@@ -64,9 +66,9 @@ async def change_password(request : Request):
     if len([i.__dict__ for i in db1.query(User).filter(and_(User.id == int(json_data['user_id']),User.password == json_data['old_password']))]) != 0:
         db1.query(User).filter(User.id == int(json_data['user_id'])).update({User.password:json_data['new_password']})
         db1.commit()
-        return {"status":200,"message":"Password changed successfully","data":{}}
+        return JSONResponse(content={"status":200,"message":"Password changed successfully","data":{}})
     else:
-        return {"status":500,"message":"Old password is wrong","data":{}}
+        return JSONResponse(content={"status":500,"message":"Old password is wrong","data":{}})
  
 
 @login.post('/forgot_password')
@@ -84,7 +86,7 @@ async def forgot_password(request : Request):
                 return {"status":500,"message":f"{i} can not be empty","data":{}}
     db1.query(User).filter(User.id == int(json_data['user_id'])).update({User.password:json_data['new_password']})
     db1.commit()
-    return {"status":200,"message":"Password changed successfully","data":{}}
+    return JSONResponse(content={"status":200,"message":"Password changed successfully","data":{}})
 
 
 @login.post('/register_user')
@@ -111,6 +113,6 @@ async def register_user(request : Request):
     rand_token = uuid4()
     set_session(user_id = user_data['id'],token = rand_token)
     user_data['token'] = rand_token
-    return {"status":200,"message":"User registered successfully","data":user_data}
+    return JSONResponse(content={"status":200,"message":"User registered successfully","data":user_data})
 
 

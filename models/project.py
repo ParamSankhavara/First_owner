@@ -6,7 +6,7 @@ Base = declarative_base()
 class Projects(Base):
     __tablename__ = 'projects'
     id = Column(Integer, primary_key=True, unique=True)
-    user_id = Column(Integer, ForeignKey('users.id'))
+    user_id = Column(Integer)
     name = Column(String(20))
     built_in = Column(Integer)
     price = Column(Float)
