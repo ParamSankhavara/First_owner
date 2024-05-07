@@ -25,3 +25,4 @@ for file in os.listdir(PATH):
         module = importlib.import_module(f'routes.{module_x}', package=f'{module_x}')
         app.include_router(getattr(module,module_x))
 # app.include_router(login)
+        

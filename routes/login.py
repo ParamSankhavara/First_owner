@@ -15,6 +15,10 @@ from fastapi.middleware.cors import CORSMiddleware
 login = APIRouter()
 
 
+@login.get('/test')
+async def test():
+    return {"status":200,"message":"Success","data":{}}
+
 @login.post('/login')
 async def login_fuct(request : Request):
     json_data = await request.json()
@@ -116,3 +120,7 @@ async def register_user(request : Request):
     return JSONResponse(content={"status":200,"message":"User registered successfully","data":user_data})
 
 
+@login.get('/home')
+async def home():
+    return 'Welcome to First Owner Backend 1.0!!!',200
+    # return {"status":200,"message":"Success","data":{}}
