@@ -20,6 +20,7 @@ def get_user_data(mobile_no,password,role_id):
         questions AS q ON q.id = sq.question_id
     WHERE
         mobile_no = '{mobile_no}' AND password = '{password}' AND role_id = {int(role_id)}"""))]
+    data = {key: str(value) for key, value in data[0].items()}
     # data = [i.__dict__ for i in db1.query(User).filter(and_(User.mobile_no == mobile_no,User.password == password,User.role_id == role_id))]
     return data
 

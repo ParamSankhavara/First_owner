@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 
 load_dotenv()
-
+# print(os.getenv('DB_ENV'))
 
 app= FastAPI()
 app.add_middleware(
