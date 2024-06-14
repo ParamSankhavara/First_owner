@@ -1,10 +1,10 @@
 from sqlalchemy import create_engine,NullPool
 from sqlalchemy.orm import sessionmaker
 import urllib.parse
-import os
+import env
 
 DB_DRIVER = "mysql+pymysql"
-if os.getenv('DB_ENV') == 'pro':
+if env.DB_ENV == 'pro':
     DB_USER = 'mysql_database'
     DB_PASSWORD = 'db1200'
     DB_HOST = 'localhost'

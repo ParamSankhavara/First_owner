@@ -1,6 +1,6 @@
-import os
+import env
 
-if os.getenv('DB_ENV') == 'pro':
+if env.DB_ENV == "pro":
     # PATH = '/Users/param/Desktop/First_owner/routes'
     PATH = 'ubuntu/First_owner/routes'
 else:

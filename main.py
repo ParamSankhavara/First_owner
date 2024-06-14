@@ -1,14 +1,12 @@
 from fastapi import FastAPI
 from routes.login import login
-from dotenv import load_dotenv
 from config.con import *
 import os
 import importlib
 from fastapi.middleware.cors import CORSMiddleware
+import env
 
-
-load_dotenv()
-# print(os.getenv('DB_ENV'))
+print(env.DB_ENV)
 
 app= FastAPI()
 app.add_middleware(
