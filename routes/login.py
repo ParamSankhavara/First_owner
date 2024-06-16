@@ -12,6 +12,8 @@ import datetime
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from models.questions import Questions
+import os
+from models.bulider_info import BuilderInfo
 
 login = APIRouter()
 
@@ -35,11 +37,10 @@ async def login_fuct(request : Request):
     user_data = get_user_data(json_data['mobile_no'],json_data['password'],json_data['role_id'])
     if len(user_data) == 0:
         return {"status":0,"message":"Mobile no or password is wrong"}
-    user_data = user_data[0]
     rand_token = uuid4()
     set_session(user_data['id'],rand_token)
     user_data['token'] = rand_token
-    return JSONResponse(content={"status":1,"message":"Login success","data":user_data})
+    return {"status":1,"message":"Wellcome In First-Owner!","data":user_data}
 
 
 @login.post('/logout')
@@ -50,7 +51,7 @@ async def login_fuct(request : Request):
             return {"status":0,"message":f"{i} is missing"}
         if len(json_data[i]) == 0:
             return {"status":0,"message":f"{i} can not be empty"}
-    db1.query(Session).filter(Session.user_id == json_data['user_id']).delete()
+    db1.query(Session).filter(Session.user_id == json_data['user_id']).update({Session.active:0})
     db1.commit()
     return JSONResponse(content={"success":1,"message":"Logout success"})
 
@@ -97,7 +98,7 @@ async def forgot_password(request : Request):
 @login.post('/register_user')
 async def register_user(request : Request):
     json_data = await request.json()
-    for i in ['username','mobile_no','password','role_id','email']:
+    for i in ['username','mobile_no','password','email']:
         if i not in json_data.keys():
             return {"status":0,"message":f"{i} is missing"}
         if type(json_data[i]) == int:
@@ -106,6 +107,7 @@ async def register_user(request : Request):
         else:
             if len(json_data[i]) == 0:
                 return {"status":0,"message":f"{i} can not be empty"}
+    json_data['role_id'] = 1
     if len([i.__dict__ for i in db1.query(User).filter(and_(User.mobile_no == json_data['mobile_no'],User.role_id == json_data['role_id']))]) != 0:
         return {"status":0,"message":"User already assiocated with this mobile no"}
     if len([i.__dict__ for i in db1.query(User).filter(and_(User.email == json_data['email'],User.role_id == json_data['role_id']))]) != 0:
@@ -131,4 +133,44 @@ async def register_user(request : Request):
 @login.get('/home')
 async def home():
     return 'Welcome to First Owner Backend 1.0!!!',200
-    # return {"status":200,"message":"Success","data":{}}
+
+
+@login.post('/register_builder')
+async def register_builder(request : Request):
+    json_data = await request.form()
+    for i in ['username','mobile_no','password','email','company_name','owner_name','company_objective','city','achievement','year_since',"profile_pic","experiance","logo"]:
+        if json_data.get(i) == None:
+            return {"status":0,"message":f"{i} is missing"}
+        if i not in ['profile_pic','logo']:
+            if type(json_data.get(i)) == int:
+                if json_data.get(i) == 0:
+                    return {"status":0,"message":f"{i} can not be empty"}
+            else:
+                if len(json_data.get(i)) == 0:
+                    return {"status":0,"message":f"{i} can not be empty"}
+    role_id = 2
+    if len([i.__dict__ for i in db1.query(User).filter(and_(User.mobile_no == json_data.get('mobile_no'),User.role_id == role_id))]) != 0:
+        return {"status":0,"message":"User already assiocated with this mobile no"}
+    if len([i.__dict__ for i in db1.query(User).filter(and_(User.email == json_data.get('email'),User.role_id == role_id))]) != 0:
+        return {"status":0,"message":"User already assiocated with this email"}
+    user_insert = User(mobile_no=json_data.get('mobile_no'),password=json_data.get('password'),role_id=role_id,email=json_data.get('email'),username=json_data.get('username'),updated_on=datetime.datetime.now(),created_on=datetime.datetime.now())
+    db1.add(user_insert)
+    db1.commit()
+    profile_pic = json_data.get('profile_pic')
+    logo = json_data.get('logo')
+    os.makedirs(f"static/profile_pic/{user_insert.id}", exist_ok=True)
+    os.makedirs(f"static/logo/{user_insert.id}", exist_ok=True)
+    with open(f"static/profile_pic/{user_insert.id}/{str(datetime.datetime.now()).translate(str.maketrans('', '', ':- .'))}.{profile_pic.filename.split('.')[-1]}","wb+") as open_file:
+        open_file.write(profile_pic.file.read())
+    profile_pic = f"static/profile_pic/{user_insert.id}/{str(datetime.datetime.now()).translate(str.maketrans('', '', ':- .'))}.{profile_pic.filename.split('.')[-1]}"
+    with open(f"static/logo/{user_insert.id}/{str(datetime.datetime.now()).translate(str.maketrans('', '', ':- .'))}.{logo.filename.split('.')[-1]}","wb+") as open_logo:
+        open_logo.write(logo.file.read())
+    logo = f"static/logo/{user_insert.id}/{str(datetime.datetime.now()).translate(str.maketrans('', '', ':- .'))}.{logo.filename.split('.')[-1]}"
+    builder_info = BuilderInfo(user_id = user_insert.id,company_name = json_data.get('company_name'),company_objective = json_data.get('company_objective'),city_of_office = json_data.get('city'),company_achievement = json_data.get('achievement'),company_since = json_data.get('year_since'),company_experience=json_data.get('experiance'),logo = logo,company_pic = profile_pic,owner_name = json_data.get('owner_name'))
+    db1.add(builder_info)
+    db1.commit()
+    user_data = get_user_data(json_data['mobile_no'],json_data['password'],role_id)
+    rand_token = uuid4()
+    set_session(user_id = user_data['id'],token = rand_token)
+    user_data['token'] = rand_token
+    return {"status":1,"message":"Builder registered successfully","data":user_data}

@@ -8,3 +8,4 @@ class Session(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(Integer, unique=True)
     token = Column(String(100))
+    active = Column(Integer)

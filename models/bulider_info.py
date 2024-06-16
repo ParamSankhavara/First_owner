@@ -9,12 +9,12 @@ class BuilderInfo(Base):
     user_id = Column(Integer, unique=True)
     company_name = Column(String(80), unique=True)
     company_objective = Column(String(50))
-    city_of_office = Column(String(10))
+    city_of_office = Column(String(100))
     company_achievement = Column(String(200))
     company_since = Column(Integer)
     company_experience = Column(Integer)
-    projects_count = Column(Integer)
-    running_projects = Column(Integer)
-    upcoming_projects = Column(Integer)
     logo = Column(String(100))
     company_pic = Column(String(100))
+    owner_name = Column(String(100))
+
+
