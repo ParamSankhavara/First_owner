@@ -5,6 +5,8 @@ import os
 import importlib
 from fastapi.middleware.cors import CORSMiddleware
 import env
+from fastapi_sqlalchemy import DBSessionMiddleware,db
+from config.db import SQLALCHEMY_DATABASE_URI
 
 print(env.DB_ENV)
 
@@ -16,6 +18,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.add_middleware(DBSessionMiddleware, db_url=SQLALCHEMY_DATABASE_URI)
 
 for file in os.listdir(PATH): 
     if file.endswith('.py'):

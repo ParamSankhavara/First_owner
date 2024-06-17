@@ -19,7 +19,12 @@ else:
 
 DB_PASSWORD = urllib.parse.quote_plus(DB_PASSWORD) if '@' in DB_PASSWORD else DB_PASSWORD
 print("Connecting to db..........",'%s://%s:%s@%s:%s/%s' % (DB_DRIVER,DB_USER, DB_PASSWORD, DB_HOST, DB_PORT, DB_NAME))
-engine = create_engine('%s://%s:%s@%s:%s/%s' % (DB_DRIVER,DB_USER, DB_PASSWORD, DB_HOST, DB_PORT, DB_NAME),poolclass=NullPool,pool_pre_ping=True)
+SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://%s:%s@%s:%s/%s' % (
+    DB_USER, DB_PASSWORD, DB_HOST, DB_PORT, DB_NAME)
 
-Session = sessionmaker(bind=engine)
-db1 = Session()
+
+
+# engine = create_engine('%s://%s:%s@%s:%s/%s' % (DB_DRIVER,DB_USER, DB_PASSWORD, DB_HOST, DB_PORT, DB_NAME),poolclass=NullPool,pool_pre_ping=True)
+
+# Session = sessionmaker(bind=engine)
+# db1 = Session()

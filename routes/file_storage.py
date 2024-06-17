@@ -1,6 +1,7 @@
 from fastapi import APIRouter,Request
 from utiles.decorater import get_user_data,set_session,validate_request
-from config.db import db1,engine
+# from config.db import db1,engine
+from fastapi_sqlalchemy import db
 from sqlalchemy import text,and_
 from fastapi import FastAPI, Path, HTTPException
 from fastapi.responses import FileResponse

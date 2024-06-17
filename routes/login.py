@@ -1,7 +1,8 @@
 from fastapi import APIRouter,Request
-from config.db import db1,engine
+# from config.db import db1,engine
+from fastapi_sqlalchemy import db
 from models.user import User
-from config.db import db1,engine
+# from config.db import db1,engine
 from sqlalchemy import text
 from uuid import uuid4
 from models.session import Session
@@ -51,8 +52,8 @@ async def login_fuct(request : Request):
             return {"status":0,"message":f"{i} is missing"}
         if len(json_data[i]) == 0:
             return {"status":0,"message":f"{i} can not be empty"}
-    db1.query(Session).filter(Session.user_id == json_data['user_id']).update({Session.active:0})
-    db1.commit()
+    db.session.query(Session).filter(Session.user_id == json_data['user_id']).update({Session.active:0})
+    db.session.commit()
     return JSONResponse(content={"success":1,"message":"Logout success"})
 
 
@@ -69,9 +70,9 @@ async def change_password(request : Request):
         else:
             if len(json_data[i]) == 0:
                 return {"status":0,"message":f"{i} can not be empty"}
-    if len([i.__dict__ for i in db1.query(User).filter(and_(User.id == int(json_data['user_id']),User.password == json_data['old_password']))]) != 0:
-        db1.query(User).filter(User.id == int(json_data['user_id'])).update({User.password:json_data['new_password']})
-        db1.commit()
+    if len([i.__dict__ for i in db.session.query(User).filter(and_(User.id == int(json_data['user_id']),User.password == json_data['old_password']))]) != 0:
+        db.session.query(User).filter(User.id == int(json_data['user_id'])).update({User.password:json_data['new_password']})
+        db.session.commit()
         return JSONResponse(content={"status":1,"message":"Password changed successfully"})
     else:
         return JSONResponse(content={"status":0,"message":"Old password is wrong"})
@@ -90,8 +91,8 @@ async def forgot_password(request : Request):
         else:
             if len(json_data[i]) == 0:
                 return {"status":0,"message":f"{i} can not be empty"}
-    db1.query(User).filter(User.id == int(json_data['user_id'])).update({User.password:json_data['new_password']})
-    db1.commit()
+    db.session.query(User).filter(User.id == int(json_data['user_id'])).update({User.password:json_data['new_password']})
+    db.session.commit()
     return JSONResponse(content={"status":1,"message":"Password changed successfully"})
 
 
@@ -108,15 +109,15 @@ async def register_user(request : Request):
             if len(json_data[i]) == 0:
                 return {"status":0,"message":f"{i} can not be empty"}
     json_data['role_id'] = 1
-    if len([i.__dict__ for i in db1.query(User).filter(and_(User.mobile_no == json_data['mobile_no'],User.role_id == json_data['role_id']))]) != 0:
+    if len([i.__dict__ for i in db.session.query(User).filter(and_(User.mobile_no == json_data['mobile_no'],User.role_id == json_data['role_id']))]) != 0:
         return {"status":0,"message":"User already assiocated with this mobile no"}
-    if len([i.__dict__ for i in db1.query(User).filter(and_(User.email == json_data['email'],User.role_id == json_data['role_id']))]) != 0:
+    if len([i.__dict__ for i in db.session.query(User).filter(and_(User.email == json_data['email'],User.role_id == json_data['role_id']))]) != 0:
         return {"status":0,"message":"User already assiocated with this email"}
     user_insert = User(mobile_no=json_data['mobile_no'],password=json_data['password'],role_id=json_data['role_id'],email=json_data['email'],username=json_data['username'],updated_on=datetime.datetime.now(),created_on=datetime.datetime.now())
-    db1.add(user_insert)
-    db1.commit()
-    db1.add(SecurityQuestion(user_id=user_insert.id,question_id=int(json_data['question_id']),answer=json_data['question_answer']))
-    db1.commit()
+    db.add(user_insert)
+    db.session.commit()
+    db.add(SecurityQuestion(user_id=user_insert.id,question_id=int(json_data['question_id']),answer=json_data['question_answer']))
+    db.session.commit()
     user_data = get_user_data(json_data['mobile_no'],json_data['password'],json_data['role_id'])
     rand_token = uuid4()
     set_session(user_id = user_data['id'],token = rand_token)
@@ -126,7 +127,7 @@ async def register_user(request : Request):
 
 @login.post('/list_questions')
 async def register_user(request : Request):
-    qus_list = [i.__dict__ for i in db1.query(Questions)]
+    qus_list = [i.__dict__ for i in db.session.query(Questions)]
     return {"status":1,"message":"Success","data":qus_list}
 
 
@@ -149,13 +150,13 @@ async def register_builder(request : Request):
                 if len(json_data.get(i)) == 0:
                     return {"status":0,"message":f"{i} can not be empty"}
     role_id = 2
-    if len([i.__dict__ for i in db1.query(User).filter(and_(User.mobile_no == json_data.get('mobile_no'),User.role_id == role_id))]) != 0:
+    if len([i.__dict__ for i in db.session.query(User).filter(and_(User.mobile_no == json_data.get('mobile_no'),User.role_id == role_id))]) != 0:
         return {"status":0,"message":"User already assiocated with this mobile no"}
-    if len([i.__dict__ for i in db1.query(User).filter(and_(User.email == json_data.get('email'),User.role_id == role_id))]) != 0:
+    if len([i.__dict__ for i in db.session.query(User).filter(and_(User.email == json_data.get('email'),User.role_id == role_id))]) != 0:
         return {"status":0,"message":"User already assiocated with this email"}
     user_insert = User(mobile_no=json_data.get('mobile_no'),password=json_data.get('password'),role_id=role_id,email=json_data.get('email'),username=json_data.get('username'),updated_on=datetime.datetime.now(),created_on=datetime.datetime.now())
-    db1.add(user_insert)
-    db1.commit()
+    db.add(user_insert)
+    db.session.commit()
     profile_pic = json_data.get('profile_pic')
     logo = json_data.get('logo')
     os.makedirs(f"static/profile_pic/{user_insert.id}", exist_ok=True)
@@ -167,8 +168,8 @@ async def register_builder(request : Request):
         open_logo.write(logo.file.read())
     logo = f"static/logo/{user_insert.id}/{str(datetime.datetime.now()).translate(str.maketrans('', '', ':- .'))}.{logo.filename.split('.')[-1]}"
     builder_info = BuilderInfo(user_id = user_insert.id,company_name = json_data.get('company_name'),company_objective = json_data.get('company_objective'),city_of_office = json_data.get('city'),company_achievement = json_data.get('achievement'),company_since = json_data.get('year_since'),company_experience=json_data.get('experiance'),logo = logo,company_pic = profile_pic,owner_name = json_data.get('owner_name'))
-    db1.add(builder_info)
-    db1.commit()
+    db.add(builder_info)
+    db.session.commit()
     user_data = get_user_data(json_data['mobile_no'],json_data['password'],role_id)
     rand_token = uuid4()
     set_session(user_id = user_data['id'],token = rand_token)
