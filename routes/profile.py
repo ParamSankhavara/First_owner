@@ -15,6 +15,8 @@ profile = APIRouter()
 async def get_builder_profile(request : Request):
     json_data = await request.json()
     user_data = get_user_data(token=json_data['token'])
+    if json_data['builder_id'] != "":
+        user_data['user_id'] = int(json_data['builder_id'])
     if len(user_data) != 0:
         count_data = [i._asdict() for i in db.session.execute(text(f"""SELECT SUM(CASE WHEN current_state = 1 THEN 1 ELSE 0 END) AS completed_projects,SUM(CASE WHEN current_state = 2 THEN 1 ELSE 0 END) AS running_projects,SUM(CASE WHEN current_state = 3 THEN 1 ELSE 0 END) AS upcoming_projects FROM projects WHERE user_id = "{user_data['user_id']}" """))]
         if len(count_data) != 0:
@@ -27,6 +29,7 @@ async def get_builder_profile(request : Request):
         return {"status":1,"message":"Success","data":user_data}
     else:
         return {"status":0,"message":"No Data Found For This User"}
+
     
 
 @profile.post('/builder/update_profile')
@@ -98,7 +101,7 @@ async def update_user_profile(request : Request):
 async def get_builder_list(request : Request):
     json_data = await request.json()
     user_data = get_user_data(token=json_data['token'])
-    builder_data = [i._asdict() for i in db.session.execute(text("SELECT company_name,company_pic FROM first_owner.builder_info as b_info inner join first_owner.users as user_info on user_info.id = b_info.user_id where user_info.role_id = 2"))]
+    builder_data = [i._asdict() for i in db.session.execute(text("SELECT company_name,company_pic,user_id FROM first_owner.builder_info as b_info inner join first_owner.users as user_info on user_info.id = b_info.user_id where user_info.role_id = 2"))]
     builder_data = [{k: str(v) for k, v in item.items()} for item in builder_data]
     for i in builder_data:
         i['company_pic'] = f"file/download/{i['company_pic']}" if i['company_pic'] not in ['None',"",None] else ""
