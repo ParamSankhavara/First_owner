@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI,Request
 from routes.login import login
 from config.con import *
 import os
@@ -7,6 +7,9 @@ from fastapi.middleware.cors import CORSMiddleware
 import env
 from fastapi_sqlalchemy import DBSessionMiddleware,db
 from config.db import SQLALCHEMY_DATABASE_URI
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from database import Base
 
 print(env.DB_ENV)
 
@@ -19,6 +22,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 app.add_middleware(DBSessionMiddleware, db_url=SQLALCHEMY_DATABASE_URI)
+
+
+engine = create_engine(SQLALCHEMY_DATABASE_URI)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+
+Base.metadata.create_all(bind=engine)
 
 for file in os.listdir(PATH): 
     if file.endswith('.py'):

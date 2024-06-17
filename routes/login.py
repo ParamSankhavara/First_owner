@@ -114,9 +114,9 @@ async def register_user(request : Request):
     if len([i.__dict__ for i in db.session.query(User).filter(and_(User.email == json_data['email'],User.role_id == json_data['role_id']))]) != 0:
         return {"status":0,"message":"User already assiocated with this email"}
     user_insert = User(mobile_no=json_data['mobile_no'],password=json_data['password'],role_id=json_data['role_id'],email=json_data['email'],username=json_data['username'],updated_on=datetime.datetime.now(),created_on=datetime.datetime.now())
-    db.add(user_insert)
+    db.session.add(user_insert)
     db.session.commit()
-    db.add(SecurityQuestion(user_id=user_insert.id,question_id=int(json_data['question_id']),answer=json_data['question_answer']))
+    db.session.add(SecurityQuestion(user_id=user_insert.id,question_id=int(json_data['question_id']),answer=json_data['question_answer']))
     db.session.commit()
     user_data = get_user_data(json_data['mobile_no'],json_data['password'],json_data['role_id'])
     rand_token = uuid4()
@@ -155,7 +155,7 @@ async def register_builder(request : Request):
     if len([i.__dict__ for i in db.session.query(User).filter(and_(User.email == json_data.get('email'),User.role_id == role_id))]) != 0:
         return {"status":0,"message":"User already assiocated with this email"}
     user_insert = User(mobile_no=json_data.get('mobile_no'),password=json_data.get('password'),role_id=role_id,email=json_data.get('email'),username=json_data.get('username'),updated_on=datetime.datetime.now(),created_on=datetime.datetime.now())
-    db.add(user_insert)
+    db.session.add(user_insert)
     db.session.commit()
     profile_pic = json_data.get('profile_pic')
     logo = json_data.get('logo')
@@ -163,12 +163,13 @@ async def register_builder(request : Request):
     os.makedirs(f"static/logo/{user_insert.id}", exist_ok=True)
     with open(f"static/profile_pic/{user_insert.id}/{str(datetime.datetime.now()).translate(str.maketrans('', '', ':- .'))}.{profile_pic.filename.split('.')[-1]}","wb+") as open_file:
         open_file.write(profile_pic.file.read())
-    profile_pic = f"static/profile_pic/{user_insert.id}/{str(datetime.datetime.now()).translate(str.maketrans('', '', ':- .'))}.{profile_pic.filename.split('.')[-1]}"
+        print(open_file.name)
+        profile_pic = open_file.name
     with open(f"static/logo/{user_insert.id}/{str(datetime.datetime.now()).translate(str.maketrans('', '', ':- .'))}.{logo.filename.split('.')[-1]}","wb+") as open_logo:
         open_logo.write(logo.file.read())
-    logo = f"static/logo/{user_insert.id}/{str(datetime.datetime.now()).translate(str.maketrans('', '', ':- .'))}.{logo.filename.split('.')[-1]}"
+        logo = open_logo.name
     builder_info = BuilderInfo(user_id = user_insert.id,company_name = json_data.get('company_name'),company_objective = json_data.get('company_objective'),city_of_office = json_data.get('city'),company_achievement = json_data.get('achievement'),company_since = json_data.get('year_since'),company_experience=json_data.get('experiance'),logo = logo,company_pic = profile_pic,owner_name = json_data.get('owner_name'))
-    db.add(builder_info)
+    db.session.add(builder_info)
     db.session.commit()
     user_data = get_user_data(json_data['mobile_no'],json_data['password'],role_id)
     rand_token = uuid4()

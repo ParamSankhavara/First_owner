@@ -24,15 +24,16 @@ def get_user_data(mobile_no = 0,password = "",role_id = 0,token=""):
             mobile_no = '{mobile_no}' AND password = '{password}' AND role_id = {int(role_id)}"""))]
         if len(data) != 0:
             data = {key: str(value) for key, value in data[0].items()}
-            print(data)
             return data
         else:
             return {}
     else:
         data = [i._asdict() for i in db.session.execute(text(f"""
-        SELECT user.* FROM first_owner.builder_info as user inner join first_owner.session as session ON session.user_id = user.user_id where token = "{token}" """))]
+        SELECT user_info.*,company_name,company_objective,company_achievement,company_experience,company_pic,company_since,city_of_office,logo,owner_name FROM first_owner.users as user_info inner join first_owner.session as session ON session.user_id = user_info.id left join first_owner.builder_info as b_info on b_info.user_id = session.user_id where token = "{token}" """))]
+        print(data)
         if len(data) != 0:
             data = {key:str(value) for key,value in data[0].items()}
+            data['user_id'] = data.pop('id')
             return data
         else:
             return {}
@@ -44,10 +45,12 @@ def get_user_data(mobile_no = 0,password = "",role_id = 0,token=""):
 def set_session(user_id,token):
     data = [i.__dict__ for i in db.session.query(Session).filter(Session.user_id == user_id)]
     if len(data) == 0:
-        db.add(Session(user_id=user_id,token=token,active = 1))
+        db.session.add(Session(user_id=user_id,token=token,active = 1))
         db.session.commit()
     else:
         db.session.query(Session).filter(Session.user_id == user_id).update({Session.active:0})
+        db.session.commit()
+        db.session.add(Session(user_id=user_id,token=token,active = 1))
         db.session.commit()
     return None
 
@@ -55,10 +58,22 @@ def set_session(user_id,token):
 def validate_request(func):
     @wraps(func)
     async def wrapper(request: Request, *args, **kwargs):
-        json_data = await request.json()
-        if 'token' not in json_data.keys():
-            return {"status":500,"message":"Token Is Missing","data":{}}
-        if len([i.__dict__ for i in db.session.query(Session).filter(and_(Session.token == json_data['token'],Session.active == 1))]) == 0:
-            return {"status":500,"message":"Invalid token","data":{}}
-        return await func(request, *args, **kwargs)
+        try:
+            json_data = await request.json()
+            if 'token' not in json_data.keys():
+                return {"status":500,"message":"Token Is Missing","data":{}}
+            if len([i.__dict__ for i in db.session.query(Session).filter(and_(Session.token == json_data['token'],Session.active == 1))]) == 0:
+                return {"status":500,"message":"Invalid token","data":{}}
+            return await func(request, *args, **kwargs)
+        except RuntimeError:
+            json_data = await request.form()
+            if json_data.get('token') == None:
+                return {"status":500,"message":"Token Is Missing","data":{}}
+            if len([i.__dict__ for i in db.session.query(Session).filter(and_(Session.token== json_data.get('token'),Session.active == 1))]) == 0:
+                return {"status":500,"message":"Invalid token","data":{}}
+            return await func(request, *args, **kwargs)
     return wrapper
+
+
+def convert_in_str(data):
+    return [{key: str(value) for key, value in item.items()} for item in data]
