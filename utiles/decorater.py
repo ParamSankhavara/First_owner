@@ -37,7 +37,6 @@ def get_user_data(mobile_no = 0,password = "",role_id = 0,token=""):
             return data
         else:
             return {}
-    # data = [i.__dict__ for i in db.session.query(User).filter(and_(User.mobile_no == mobile_no,User.password == password,User.role_id == role_id))]
 
 
 

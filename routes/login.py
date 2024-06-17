@@ -1,9 +1,6 @@
 from fastapi import APIRouter,Request
-# from config.db import db1,engine
 from fastapi_sqlalchemy import db
 from models.user import User
-# from config.db import db1,engine
-from sqlalchemy import text
 from uuid import uuid4
 from models.session import Session
 from models.security_questions import SecurityQuestion
@@ -18,14 +15,10 @@ from models.bulider_info import BuilderInfo
 
 login = APIRouter()
 
-
-@login.get('/test')
-async def test():
-    return {"status":200,"message":"Success","data":{}}
-
 @login.post('/login')
 async def login_fuct(request : Request):
     json_data = await request.json()
+    # Validation
     for i in ['mobile_no','password','role_id']:
         if i not in json_data.keys():
             return {"status":0,"message":f"{i} is missing"}
@@ -109,6 +102,7 @@ async def register_user(request : Request):
             if len(json_data[i]) == 0:
                 return {"status":0,"message":f"{i} can not be empty"}
     json_data['role_id'] = 1
+    # Check if user already exist
     if len([i.__dict__ for i in db.session.query(User).filter(and_(User.mobile_no == json_data['mobile_no'],User.role_id == json_data['role_id']))]) != 0:
         return {"status":0,"message":"User already assiocated with this mobile no"}
     if len([i.__dict__ for i in db.session.query(User).filter(and_(User.email == json_data['email'],User.role_id == json_data['role_id']))]) != 0:

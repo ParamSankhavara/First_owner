@@ -17,9 +17,11 @@ project = APIRouter()
 @validate_request
 async def fetch_all_projects(request : Request):
     json_data = await request.json()
-    if 'filter' in json_data and json_data['filter'] in ["True",True]:
+    print(json_data)
+    json_data['type'] = int(json_data['type'])
+    if 'filter' in json_data and json_data['filter'] in ["true",True]:
         user_data = get_user_data(token=json_data['token'])
-        if len(json_data['type']) == 0:
+        if json_data['type'] == 0:
             if json_data['user_id'] == 0:
                 data = [i.__dict__ for i in db.session.query(Projects).filter(Projects.user_id == user_data['user_id']).all()]
             else:
@@ -28,27 +30,69 @@ async def fetch_all_projects(request : Request):
             if json_data['user_id'] == 0:
                 data = [i.__dict__ for i in db.session.query(Projects).filter(and_(Projects.user_id == user_data['user_id'],Projects.type.in_(json_data['type']))).all()]
             else:
-                data = [i.__dict__ for i in db.session.query(Projects).filter(and_(Projects.user_id.in_([json_data['user_id'],user_data['user_id']]),Projects.type.in_(json_data['type']))).all()]
+                data = [i.__dict__ for i in db.session.query(Projects).filter(and_(Projects.user_id.in_([json_data['user_id'],user_data['user_id']]),Projects.type == json_data['type'])).all()]
     else:
-        if len(json_data['type']) == 0:
+        if json_data['type'] == 0:
             if json_data['user_id'] == 0:
                 data = [i.__dict__ for i in db.session.query(Projects).all()]
             else:
                 data = [i.__dict__ for i in db.session.query(Projects).filter(Projects.user_id == json_data['user_id']).all()]
         else:
             if json_data['user_id'] == 0:
-                data = [i.__dict__ for i in db.session.query(Projects).filter(Projects.type.in_(json_data['type'])).all()]
+                data = [i.__dict__ for i in db.session.query(Projects).filter(Projects.type == json_data['type']).all()]
             else:
-                data = [i.__dict__ for i in db.session.query(Projects).filter(and_(Projects.user_id == json_data['user_id'],Projects.type.in_(json_data['type']))).all()]
+                data = [i.__dict__ for i in db.session.query(Projects).filter(and_(Projects.user_id == json_data['user_id'],Projects.type == Projects.type == json_data['type'])).all()]
     data = convert_in_str(data)
+    type_data = [i.__dict__ for i in db.session.query(TypeProperty).all()]
     # data["photos"] = eval(data['photos'])
     file_list = []
     for i in data:
+        for id_type in type_data:
+            if str(id_type['id']) == i['type']:
+                i['type'] = id_type['name']
+        try:
+            temp = int(i['type'])
+            i['type'] = "Unknown"
+        except:
+            pass
         i["photos"] = eval(i['photos'])
         for p in i['photos']:
             file_list.append(f"file/download/{p}")
-        i['photos'] = str(file_list)
+        i['photos'] = file_list
         file_list = []
+    return {"status":1,"message":"Success","data":data}
+
+@project.post("/get/s_property")
+@validate_request
+async def fetch_as_propert(request : Request):
+    json_data = await request.json()
+    print(json_data)
+    user_data = get_user_data(token=json_data['token'])
+    property_state = json_data['property_state']
+    user_id = int(json_data['user_id'])
+    if user_id == 0:
+        data = [i.__dict__ for i in db.session.query(Projects).filter(and_(Projects.user_id == user_data['user_id'],Projects.current_state == property_state)).all()]
+    else:
+        data = [i.__dict__ for i in db.session.query(Projects).filter(and_(Projects.user_id == user_id,Projects.current_state == property_state)).all()]
+    data = convert_in_str(data)
+    type_data = [i.__dict__ for i in db.session.query(TypeProperty).all()]
+    # data["photos"] = eval(data['photos'])
+    file_list = []
+    for i in data:
+        for id_type in type_data:
+            if str(id_type['id']) == i['type']:
+                i['type'] = id_type['name']
+        try:
+            temp = int(i['type'])
+            i['type'] = "Unknown"
+        except:
+            pass
+        i["photos"] = eval(i['photos'])
+        for p in i['photos']:
+            file_list.append(f"file/download/{p}")
+        i['photos'] = file_list
+        file_list = []
+    print({"status":1,"message":"Success","data":data})
     return {"status":1,"message":"Success","data":data}
 
 @project.post("/add/property")
@@ -67,8 +111,6 @@ async def add_project(request:Request,image1: Optional[UploadFile] = File(None),
         else:
             if len(json_data.get(i)) == 0:
                 return {"status":0,"message":f"{i} can not be empty"}
-    for file in files if files else []:
-        print(file.filename)
     # return {"status":1,"message":"Project Added Successfully"}
     user_info = get_user_data(token=json_data['token'])
     json_data['name'] = json_data['property_name']
@@ -159,3 +201,21 @@ async def remove_wishlist(request : Request):
     db.session.query(Wishlist).filter(Wishlist.user_id == user_data['user_id'],Wishlist.property_id == json_data['property_id']).delete()
     db.session.commit()
     return {"status":1,"message":"Removed Successfully"}
+
+
+@project.post("/remove/property")
+@validate_request
+async def remove_property(request : Request):
+    json_data = await request.json()
+    user_data = get_user_data(token=json_data['token'])
+    if len(db.session.query(Projects).filter(and_(Projects.user_id == user_data['user_id'],Projects.id == int(json_data['property_id']))).all()) == 0:
+        return {"status":0,"message":"Property Is Not Asscoiated With This User"}
+    else:
+        db.session.query(Projects).filter(Projects.id == int(json_data['property_id'])).delete()
+        db.session.commit()
+        return {"status":1,"message":"Property Removed Successfully"}
+
+
+# 1 = completed
+# 2 = Running
+# 3 = upcoming

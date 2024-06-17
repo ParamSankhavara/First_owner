@@ -10,12 +10,6 @@ from models.user import User
 
 profile = APIRouter()
 
-
-
-# 1 = completed
-# 2 = Running
-# 3 = upcoming
-
 @profile.post('/builder/get_profile')
 @validate_request
 async def get_builder_profile(request : Request):

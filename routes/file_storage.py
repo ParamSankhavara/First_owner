@@ -1,9 +1,5 @@
-from fastapi import APIRouter,Request
-from utiles.decorater import get_user_data,set_session,validate_request
-# from config.db import db1,engine
-from fastapi_sqlalchemy import db
-from sqlalchemy import text,and_
-from fastapi import FastAPI, Path, HTTPException
+from fastapi import APIRouter
+from fastapi import Path, HTTPException
 from fastapi.responses import FileResponse
 import os
 import mimetypes
@@ -13,6 +9,8 @@ import mimetypes
 
 file_storage = APIRouter()
 
+
+# API FOR FETCHING FILE
 @file_storage.get('/file/download/{subpath:path}')
 async def download_file(subpath: str = Path(..., description="The path to the file")):
     path = subpath

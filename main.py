@@ -1,3 +1,4 @@
+# MAIN FILE
 from fastapi import FastAPI,Request
 from routes.login import login
 from config.con import *
@@ -13,6 +14,7 @@ from database import Base
 
 print(env.DB_ENV)
 
+
 app= FastAPI()
 app.add_middleware(
     CORSMiddleware,
@@ -21,15 +23,21 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Define the database URL
 app.add_middleware(DBSessionMiddleware, db_url=SQLALCHEMY_DATABASE_URI)
 
 
+# Create the database engine for create tables
 engine = create_engine(SQLALCHEMY_DATABASE_URI)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
 Base.metadata.create_all(bind=engine)
 
+
+# Import all the routes from the routes folder/files Basically dynamicaly register apis from multiple files
+# Condition: File name should be same as the module name
 for file in os.listdir(PATH): 
     if file.endswith('.py'):
         module_x =file.replace('.py','')
