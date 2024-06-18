@@ -38,7 +38,16 @@ def get_user_data(mobile_no = 0,password = "",role_id = 0,token=""):
         else:
             return {}
 
-
+def get_builder_data(user_id):
+    data = [i._asdict() for i in db.session.execute(text(f"""SELECT user_info.*,company_name,company_objective,company_achievement,company_experience,company_pic,company_since,city_of_office,logo,owner_name FROM first_owner.users AS user_info INNER JOIN first_owner.builder_info AS b_info ON b_info.user_id = user_info.id WHERE
+    user_info.id = {user_id}"""))]
+    print(data)
+    if len(data) != 0:
+        data = {key:str(value) for key,value in data[0].items()}
+        data['user_id'] = data.pop('id')
+        return data
+    else:
+        return {}
 
 
 def set_session(user_id,token):
