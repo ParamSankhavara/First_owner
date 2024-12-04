@@ -37,6 +37,7 @@ async def get_builder_profile(request : Request):
 @validate_request
 async def update_builder_profile(request : Request):
     json_data = await request.form()
+    print(json_data)
     user_data = get_user_data(token=json_data['token'])
     for i in ['username','mobile_no','email','company_name','owner_name','company_objective','city','achievement','year_since',"experiance"]:
         if json_data.get(i) == None:
