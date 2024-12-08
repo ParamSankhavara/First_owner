@@ -1,18 +1,20 @@
 # MAIN FILE
+from dotenv import load_dotenv
+load_dotenv(dotenv_path=".env",override=True)
 from fastapi import FastAPI,Request
 from routes.login import login
 from config.con import *
 import os
 import importlib
 from fastapi.middleware.cors import CORSMiddleware
-import env
+# import env
 from fastapi_sqlalchemy import DBSessionMiddleware,db
 from config.db import SQLALCHEMY_DATABASE_URI
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from database import Base
 
-print(env.DB_ENV)
+print(os.environ.get('DB_ENV'))
 
 
 app= FastAPI()
