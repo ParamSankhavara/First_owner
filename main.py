@@ -27,15 +27,17 @@ app.add_middleware(
 )
 
 # Define the database URL
-app.add_middleware(DBSessionMiddleware, db_url=SQLALCHEMY_DATABASE_URI)
+# app.add_middleware(DBSessionMiddleware, db_url=SQLALCHEMY_DATABASE_URI)
 
 
 # Create the database engine for create tables
-engine = create_engine(SQLALCHEMY_DATABASE_URI)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+# engine = create_engine(SQLALCHEMY_DATABASE_URI)
+# SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
-Base.metadata.create_all(bind=engine)
+# Base.metadata.create_all(bind=engine)
+engine = ''
+SessionLocal = ''
 
 
 # Import all the routes from the routes folder/files Basically dynamicaly register apis from multiple files
